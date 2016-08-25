@@ -37,15 +37,4 @@ class BranchOperation extends AbstractOperation {
 		}
 		return $this;
 	}
-
-	public function show($depth = 0) {
-		$indent = str_repeat('    ', $depth);
-		echo "${indent}<branch name=\"".$this->branchName."\">\n";
-		foreach ($this->branches as $discriminator => $operation) {
-			echo "${indent}    <branch.suboperation discriminator=\"".$discriminator."\">\n";
-			$operation->show($depth + 2);
-			echo "${indent}    </branch.suboperation>\n";
-		}
-		echo "${indent}</branch>\n";
-	}
 }

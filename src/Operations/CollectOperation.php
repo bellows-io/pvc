@@ -21,7 +21,7 @@ class CollectOperation extends AbstractOperation {
 	public function push($operand, array $path = array()) {
 		$this->operands[] = $operand;
 		if (count($this->operands) >= $this->size) {
-			$results = call_user_func($this->callback, $this->operands, $path);
+			$results = call_user_func_array($this->callback, [ $this->operands, $path ]);
 			if ($this->next) {
 				$this->next->push($results, $path);
 			}
@@ -31,24 +31,11 @@ class CollectOperation extends AbstractOperation {
 	}
 
 	public function flush(array $path = array()) {
-		$results = call_user_func($this->callback, $this->operands, $path);
-		if ($this->next) {
-			$this->next->flush($results, $path);
-		}
+		$results = call_user_func_array($this->callback, [ $this->operands, $path ]);
 		$this->operands = [];
-		return $this;
-	}
-
-	public function show($depth = 0) {
-		$indent = str_repeat('    ', $depth);
-		echo "${indent}<collection size=\"".$this->size."\">\n";
-		foreach ($this->operands as $i => $operand) {
-			echo "${indent}    <collection.operand>".json_encode($operand)."</collection.operand>\n";
+		if ($results && $this->next) {
+			$this->next->push($results, $path);
 		}
-
-		if ($this->next) {
-			$this->next->show($depth + 1);
-		}
-		echo "${indent}</collection>\n";
+		return parent::flush($path);
 	}
 }

@@ -2,7 +2,7 @@
 
 namespace Pvc\Operations;
 
-class TransformOperation extends AbstractOperation {
+class FilterOperation extends AbstractOperation {
 
 	protected $callback;
 
@@ -11,9 +11,9 @@ class TransformOperation extends AbstractOperation {
 	}
 
 	public function push($operand, array $path = array()) {
-		$results = call_user_func($this->callback, $operand, $path);
-		if ($this->next) {
-			$this->next->push($results, $path);
+		$results = call_user_func_array($this->callback, [ $operand, $path ]);
+		if ($results && $this->next) {
+			$this->next->push($operand, $path);
 		}
 		return $this;
 	}
