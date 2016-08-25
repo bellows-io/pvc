@@ -56,8 +56,8 @@ class XmlRenderer {
 		return $array[$prefix.$name];
 	}
 
-	public function render(AbstractOperation $operation) {
-		return $this->renderWithPrefix($operation, '', $this->indentation);
+	public function render(Pipeline $pipeline) {
+		return $this->renderWithPrefix($this->getProtectedValue($pipeline, 'source'), '', $this->indentation);
 	}
 
 	public function renderWithPrefix(AbstractOperation $operation, $prefix) {

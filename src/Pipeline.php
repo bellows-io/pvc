@@ -3,30 +3,109 @@
 namespace Pvc;
 
 use Pvc\Operations\AbstractOperation;
+use Pvc\Operations\BranchOperation;
+use Pvc\Operations\CollectOperation;
+use Pvc\Operations\ExpandOperation;
+use Pvc\Operations\FilterOperation;
+use Pvc\Operations\TransformOperation;
 
-class Pipeline extends AbstractOperation {
+class Pipeline {
 
-	public function push($operand, array $path = array()) {
-		if ($this->next) {
-			$this->next->push($operand, $path);
+	/** @var AbstractOperation|null The first operation in the pipeline. Null if no operations */
+	protected $source;
+	/** @var AbstractOperation|null The last operation in the pipeline. Null if no operations */
+	protected $mouth;
+
+	/**
+	 * Adds an operand to the pipeline.
+	 * @param  mixed    $operand
+	 * @return Pipeline
+	 */
+	public function push($operand) {
+		if ($this->source) {
+			$this->source->push($operand, []);
 		}
 		return $this;
 	}
 
-	public function flush(array $path = array()) {
-		if ($this->next) {
-			$this->next->flush($path);
+	/**
+	 * Executes any remaining data in the pipeline
+	 * @return Pipeline
+	 */
+	public function flush() {
+		if ($this->source) {
+			$this->source->flush([]);
 		}
 		return $this;
 	}
 
-	public function show($depth = 0) {
-		$indent = str_repeat('    ', $depth);
-		echo "${indent}<pipeline>\n";
-		if ($this->next) {
-			$this->next->show($depth + 1);
+	/**
+	 * Adds another operation to the pipeline.
+	 * @param  AbstractOperation $next
+	 * @return Pipeline
+	 */
+	protected function then(AbstractOperation $next) {
+		if (is_null($this->source)) {
+			$this->source = $next;
+			$this->mouth = $next;
+		} else {
+			$this->mouth->setNext($next);
 		}
-		echo "${indent}</pipeline>\n";
+		return $this;
+	}
+
+	/**
+	 * Sends data various ways down the pipeline to duplicate paths.
+	 * The callback returns the discriminator which identifies the path taken at $branchName
+	 * @param  string   $branchName The name of the branch
+	 * @param  callable $callback   The discriminator function
+	 * @return Pipeline
+	 */
+	public function branch($branchName, callable $callback) {
+		return $this->then(new BranchOperation($branchName, $callback));
+	}
+
+	/**
+	 * Waits for a certain number of operands to accumulate then runs a batch operation.
+	 * Also responsds to flush events
+	 * @param  number        $quantity The number of operands to wait for to trigger the next operation
+	 * @param  callable|null $callback
+	 * @return Pipeline
+	 */
+	public function collect($quantity, callable $callback = null) {
+		if (is_null($callback)) {
+			$callback = function($data) { return $data; };
+		}
+		return $this->then(new CollectOperation($quantity, $callback));
+	}
+
+	/**
+	 * Evaluates all values to come through and only allows those that pass the callback
+	 * @param  callable|null [$callback] Filer function. If null, evaulates on truthiness
+	 * @return Pipeline
+	 */
+	public function filter(callable $callback = null) {
+		if (is_null($callback)) {
+			$callback = function($data) { return $data; };
+		}
+		return $this->then(new FilterOperation($callback));
+	}
+
+	/**
+	 * Transforms a value into another
+	 * @param  callable $callback
+	 * @return Pipeline
+	 */
+	public function transform(callable $callback) {
+		return $this->then(new TransformOperation($callback));
+	}
+
+	/**
+	 * Expands an array into individual records for processing
+	 * @return Pipeline
+	 */
+	public function expand() {
+		return $this->then(new ExpandOperation);
 	}
 
 }
