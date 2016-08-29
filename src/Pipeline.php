@@ -7,6 +7,7 @@ use Pvc\Operations\BranchOperation;
 use Pvc\Operations\CollectOperation;
 use Pvc\Operations\ExpandOperation;
 use Pvc\Operations\FilterOperation;
+use Pvc\Operations\MergeOperation;
 use Pvc\Operations\TransformOperation;
 
 class Pipeline {
@@ -63,6 +64,14 @@ class Pipeline {
 	 */
 	public function branch($branchName, callable $callback) {
 		return $this->then(new BranchOperation($branchName, $callback));
+	}
+
+	/**
+	 * All branched data will be merged together here.
+	 * @return Pipeline
+	 */
+	public function merge() {
+		return $this->then(new MergeOperation);
 	}
 
 	/**
