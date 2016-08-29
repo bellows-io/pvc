@@ -51,6 +51,7 @@ class Pipeline {
 			$this->mouth = $next;
 		} else {
 			$this->mouth->setNext($next);
+			$this->mouth = $next;
 		}
 		return $this;
 	}
