@@ -3,5 +3,9 @@
 	"description" : "Used to facilitate easy batch processing by creating data pipelines",
 	"license"     : "MIT",
 	"require"     : {},
-	"autoload"    : {}
+	"autoload"    : {
+		"psr-4": {
+			"Pvc\\": "src/"
+		}
+	}
 }
