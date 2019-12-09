@@ -20,9 +20,8 @@ class Pipeline {
 	/**
 	 * Adds an operand to the pipeline.
 	 * @param  mixed    $operand
-	 * @return Pipeline
 	 */
-	public function push($operand) {
+	public function push($operand): Pipeline {
 		if ($this->source) {
 			$this->source->push($operand, []);
 		}
@@ -31,9 +30,8 @@ class Pipeline {
 
 	/**
 	 * Executes any remaining data in the pipeline
-	 * @return Pipeline
 	 */
-	public function flush() {
+	public function flush(): Pipeline {
 		if ($this->source) {
 			$this->source->flush([]);
 		}
@@ -43,9 +41,8 @@ class Pipeline {
 	/**
 	 * Adds another operation to the pipeline.
 	 * @param  AbstractOperation $next
-	 * @return Pipeline
 	 */
-	protected function then(AbstractOperation $next) {
+	protected function then(AbstractOperation $next): Pipeline {
 		if (is_null($this->source)) {
 			$this->source = $next;
 			$this->mouth = $next;
@@ -61,28 +58,25 @@ class Pipeline {
 	 * The callback returns the discriminator which identifies the path taken at $branchName
 	 * @param  string   $branchName The name of the branch
 	 * @param  callable $callback   The discriminator function
-	 * @return Pipeline
 	 */
-	public function branch($branchName, callable $callback) {
+	public function branch(string $branchName, callable $callback): Pipeline {
 		return $this->then(new BranchOperation($branchName, $callback));
 	}
 
 	/**
 	 * All branched data will be merged together here.
-	 * @return Pipeline
 	 */
-	public function merge() {
+	public function merge(): Pipeline {
 		return $this->then(new MergeOperation);
 	}
 
 	/**
 	 * Waits for a certain number of operands to accumulate then runs a batch operation.
 	 * Also responsds to flush events
-	 * @param  number        $quantity The number of operands to wait for to trigger the next operation
+	 * @param  int           $quantity The number of operands to wait for to trigger the next operation
 	 * @param  callable|null $callback
-	 * @return Pipeline
 	 */
-	public function collect($quantity, callable $callback = null) {
+	public function collect(int $quantity, ?callable $callback = null): Pipeline {
 		if (is_null($callback)) {
 			$callback = function($data) { return $data; };
 		}
@@ -91,10 +85,9 @@ class Pipeline {
 
 	/**
 	 * Evaluates all values to come through and only allows those that pass the callback
-	 * @param  callable|null [$callback] Filer function. If null, evaulates on truthiness
-	 * @return Pipeline
+	 * @param  callable|null [$callback] Filter function. If null, evaulates on truthiness
 	 */
-	public function filter(callable $callback = null) {
+	public function filter(?callable $callback = null): Pipeline {
 		if (is_null($callback)) {
 			$callback = function($data) { return $data; };
 		}
@@ -103,18 +96,15 @@ class Pipeline {
 
 	/**
 	 * Transforms a value into another
-	 * @param  callable $callback
-	 * @return Pipeline
 	 */
-	public function transform(callable $callback) {
+	public function transform(callable $callback): Pipeline {
 		return $this->then(new TransformOperation($callback));
 	}
 
 	/**
 	 * Expands an array into individual records for processing
-	 * @return Pipeline
 	 */
-	public function expand() {
+	public function expand(): Pipeline {
 		return $this->then(new ExpandOperation);
 	}
 
