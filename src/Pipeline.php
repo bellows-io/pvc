@@ -7,6 +7,7 @@ use Pvc\Operations\BranchOperation;
 use Pvc\Operations\CollectOperation;
 use Pvc\Operations\ExpandOperation;
 use Pvc\Operations\FilterOperation;
+use Pvc\Operations\ForEachOperation;
 use Pvc\Operations\MergeOperation;
 use Pvc\Operations\TransformOperation;
 
@@ -99,6 +100,10 @@ class Pipeline {
 	 */
 	public function transform(callable $callback): Pipeline {
 		return $this->then(new TransformOperation($callback));
+	}
+
+	public function forEach(callable $callback): Pipeline {
+		return $this->then(new ForEachOperation($callback));
 	}
 
 	/**
